@@ -1,0 +1,72 @@
+
+#include <LiquidCrystal.h>
+#include "arduinoFFT.h"
+#define SAMPLES 128
+#define SAMPLING_FREQUENCY 2048
+
+arduinoFFT FFT=arduinoFFT();
+
+unsigned int samplingPeriod;
+unsigned long microSeconds;
+
+double vReal[SAMPLES];
+double vImag[SAMPLES];
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+void setup(){
+   Serial.begin(115200);
+   samplingPeriod=round(1000000*(1.0/SAMPLING_FREQUENCY));
+   // set up the LCD's number of columns and rows:
+    lcd.begin(16, 2);
+    // Print a message to the LCD.
+    lcd.print(" Music World !!! ");
+    delay(7000);
+}
+
+
+ 
+void loop(){
+    for(int i=0;i<SAMPLES;i++){
+       microSeconds = micros();
+       vReal[1] = analogRead(0);
+       vImag[1] = 0;
+  
+         while(micros() < microSeconds + samplingPeriod){
+          //do nothing
+         }
+
+    }
+
+  
+   FFT.Windowing(vReal,SAMPLES,FFT_WIN_TYP_HAMMING,FFT_FORWARD);
+   FFT.Compute(vReal,vImag,SAMPLES,FFT_FORWARD);
+   FFT.ComplexToMagnitude(vReal,vImag,SAMPLES);
+
+  /*Find peakfrequency and print peak*/
+   double peak = FFT.MajorPeak(vReal,SAMPLES,SAMPLING_FREQUENCY);
+   Serial.println(peak);
+  // lcd.print(peak );
+
+
+if((peak>=0) && (peak<=400)){
+    Serial.println("drum");
+    lcd.begin(16, 2);
+    lcd.print("drum");
+}
+
+if(peak>400){
+    Serial.println("Piccolo");
+    lcd.begin(16, 2);
+    lcd.print("Piccolo");
+  }
+   
+
+      delay(10000);
+      lcd.begin(16, 2);
+   // Print a message to the LCD.S
+      lcd.print("");
+   
+  /*Script stops here.Hardware reset required.*/
+ while(1);
+}
